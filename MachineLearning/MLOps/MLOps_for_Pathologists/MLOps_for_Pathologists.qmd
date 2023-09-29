@@ -1,0 +1,10 @@
+---
+title: "What Does It Mean To\n '***Do Machine Learning***'?"
+subtitle: "MLOps for the Practicing Pathologist"
+author: "Nick Spies, MD"
+format: revealjs
+---
+
+##  Computational & Digital Pathology
+
+![](images/Screenshot 2023-09-29 at 5.06.25 PM.png)
