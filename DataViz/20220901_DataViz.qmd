@@ -1,0 +1,493 @@
+---
+title: "Data Visualization:"
+subtitle: "The Good, The Bad, and The Ugly"
+author: "Nick Spies"
+format: 
+  revealjs: 
+    incremental: true
+    footer: "Data Visualization: The Good, The Bad, and The Ugly"
+editor: visual
+---
+
+```{r include=FALSE, echo=FALSE}
+library(tidyverse)
+library(ggpubr)
+library(geomtextpath)
+library(ggdist)
+library(qs)
+
+theme_ns <- theme(text = element_text(family = "Helvetica"), 
+                  title = element_text(face = "bold"), 
+                  axis.title = element_text(size = 12),
+                  axis.line = element_line(),  
+                  legend.title = element_text(size = 10, face = "bold.italic"),
+                  legend.title.align = 0.5,
+                  panel.grid = element_blank(),
+                  panel.background = element_blank(),
+                  strip.text = element_text(size = 10, face = "italic"),
+                  strip.background = element_blank())
+theme_set(theme_ns)
+
+assign("color_map_global",
+       c("NS" = viridis::viridis(14)[12], 
+         "LR" = viridis::viridis(14)[8],
+         "D5NS" = viridis::viridis(14)[4],
+         "D5LR" = viridis::viridis(14)[1]), 
+       envir = globalenv())
+assign("analyte_labels",
+       c("glucose" = "Glucose", 
+         "sodium" = "Sodium", 
+         "chloride" = "Chloride", 
+         "potassium_plas" = "Potassium", 
+         "calcium" = "Calcium",
+         "co2_totl" = "CO2",
+         "bun" = "BUN", 
+         "creatinine" = "Creatinine", 
+         "anion_gap" = "Anion Gap"),
+       envir = globalenv())
+
+```
+
+## The Good
+
+![Napoleon's March on Moscow](https://www.edwardtufte.com/tufte/graphics/minard_lg.gif)
+
+## The Bad
+
+[![2016 US Presidential Election Results](images/paste-FFD0557D.png)](https://socviz.co/maps.html)
+
+## The Ugly
+
+[![CpG Island Hypermethylation Profile of Human Cancer](images/paste-DDB4A72E.png)](https://academic.oup.com/hmg/article/16/R1/R50/2355975)
+
+## Why Does is Matter?
+
+![Vastly Different Datasets, ***Same Summary Statistics.***](https://damassets.autodesk.net/content/dam/autodesk/research/publications-assets/gifs/same-stats-different-graphs/DinoSequentialSmaller.gif)
+
+## Objectives
+
+-   Highlight common pitfalls in presenting numerical data.
+
+-   Introduce key design principles in visualization.
+
+-   Contrast poorly executed examples with successful presentations.
+
+-   Provide useful references for figure design.
+
+-   Apply what we've learned to laboratory data.
+
+## What Makes A Good Visualization?
+
+![Napoleon's March on Moscow](https://www.edwardtufte.com/tufte/graphics/minard_lg.gif)
+
+## What Makes A Good Visualization?
+
+![***Good visualizations clearly communicate their full dataset, but have one key message.***](https://www.edwardtufte.com/tufte/graphics/minard_lg.gif)
+
+## Clear, Concise Communication
+
+-   How do we convey information?
+
+    -   Size.
+
+    -   Shape.
+
+    -   Color.
+
+    -   Font.
+
+## Size Matters.
+
+::: {.absolute top="30%"}
+You're tasked with trying to detect samples that have been contaminated with IV fluids...
+:::
+
+## Size Matters.
+
+```{r}
+data <- qs::qread("Data/calibrator_gg_input")
+
+g <- data %>% 
+  slice_sample(prop = 0.01) %>%
+  ggplot(aes(x = percent_fluid * 100, y = Pred)) + 
+  stat_lineribbon(.width = 0, size = 1, show.legend = F, color = "black") +
+  xlim(0, 20) +
+  xlab("Percent Saline Contamination") + ylab("Predicted Probability") + 
+  theme(axis.title = element_text(size = 8))
+g
+```
+
+## Size Matters.
+
+```{r}
+g <- g + 
+  theme(axis.title = element_text(size = 18, face = "bold.italic"), axis.text = element_text(size = 12, face = "italic"), axis.ticks = element_blank())
+g
+```
+
+## Axis Scales Should Make Sense.
+
+![Venezuelan Presedential Election Results.](images/venezuela-election.png)
+
+## Fixing Our Axes.
+
+. . .
+
+```{r}
+g_50 <- g + xlim(0, 50)
+g
+```
+
+## Fixing Our Axes
+
+::: columns
+::: {.column width="50%"}
+```{r}
+g
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+g_50
+```
+:::
+:::
+
+. . .
+
+Correct scales improve the immediate intuition about the data.
+
+## Adding Variables.
+
+```{r}
+
+g_4 <- data %>% 
+  slice_sample(prop = 0.01) %>% 
+  ggplot(aes(x = percent_fluid * 100, y = Pred)) + 
+  stat_lineribbon(.width = 0, size = 1, show.legend = F, color = "black") +
+  xlab("Percent Saline Contamination") + ylab("Predicted Probability") + 
+  facet_wrap(~fct_rev(label), nrow = 2) + 
+  xlim(0, 50) +
+  theme(axis.title = element_text(size = 18, face = "bold.italic"), axis.text = element_text(size = 12, face = "italic"), axis.ticks = element_blank())
+```
+
+## Adding Variables.
+
+```{r}
+g_4_color <- data %>% 
+  slice_sample(prop = 0.01) %>% 
+  ggplot(aes(x = percent_fluid * 100, y = Pred, color = label)) + 
+  stat_lineribbon(.width = 0, size = 1, show.legend = F) +
+  xlab("Percent Saline Contamination") + ylab("Predicted Probability") + 
+  xlim(0, 50) + 
+  facet_wrap(~fct_rev(label), nrow = 2) + 
+  theme(axis.title = element_text(size = 18, face = "bold.italic"), axis.text = element_text(size = 12, face = "italic"), axis.ticks = element_blank())
+g_4_color
+```
+
+## All About Color. {background-color="#a51417"}
+
+## The Color Wheel
+
+```{r}
+library(RColorBrewer)
+library(colortools)
+
+primary = "#a51417"
+```
+
+![](images/color_wheel.webp)
+
+## Color Attributes --- HSV
+
+[![Hue, Saturation, and Value.](images/hsv8.jpeg){fig-align="center"}](https://learn.leighcotnoir.com/artspeak/elements-color/hue-value-saturation/)
+
+## Color Relationships
+
+```{r}
+wheel(primary, verbose = F)
+```
+
+## Adjacent
+
+```{r}
+analogous(primary, title = F)
+```
+
+## Complementary
+
+```{r}
+complementary(primary, title = F)
+```
+
+## Split Complementary
+
+```{r}
+splitComp(primary, title = F)
+```
+
+## Triads, Tetrads, and Squares
+
+::: columns
+::: {.column width="33%"}
+```{r}
+triadic(primary, title = F)
+```
+:::
+
+::: {.column width="33%"}
+```{r}
+tetradic(primary, title = F)
+```
+:::
+
+::: {.column width="33%"}
+```{r}
+square(primary, title = F)
+```
+:::
+:::
+
+## Now You Try...!
+
+[![https://paletton.com/](images/Screen%20Shot%202022-09-03%20at%202.31.31%20PM-01.png){width="1500"}](https://paletton.com/)
+
+## Who Cares...?
+
+![Borkin et al, 2011. IEEE.](images/Screen%20Shot%202022-09-03%20at%207.38.04%20PM.png)
+
+## Doppler for Assessing CAD.
+
+<div>
+
+::: columns
+::: {.column width="40%"}
+![](images/Screen%20Shot%202022-09-03%20at%207.41.43%20PM.png){width="600"}
+:::
+
+::: {.column width="60%"}
+::: {.absolute top="30%"}
+Default color map ("Rainbow Jet") was compared to new, optimized palettes.
+:::
+:::
+:::
+
+</div>
+
+## More Errors, Slower Reads...
+
+::: columns
+::: {.column width="50%"}
+![](images/Screen%20Shot%202022-09-03%20at%207.44.08%20PM.png){width="600"}
+:::
+
+::: {.column width="50%"}
+![](images/Screen%20Shot%202022-09-03%20at%207.45.51%20PM.png){width="600"}
+:::
+:::
+
+## Better Color Maps.
+
+![](images/Screen%20Shot%202022-09-03%20at%208.08.18%20PM.png)
+
+## 
+
+::: {.absolute top="35%" left="30%"}
+Back To Our Data...
+:::
+
+## Making Good Use of Color.
+
+```{r}
+g_4_color <- data %>% 
+  slice_sample(prop = 0.01) %>% 
+  ggplot(aes(x = percent_fluid * 100, y = Pred, color = label)) + 
+  stat_lineribbon(.width = 0, size = 1, show.legend = F) +
+  xlab("Percent Saline Contamination") + ylab("Predicted Probability") + 
+  xlim(0, 50) + 
+  theme(axis.title = element_text(size = 18, face = "bold.italic"), axis.text = element_text(size = 12, face = "italic"), axis.ticks = element_blank())
+g_4_color
+```
+
+## Making Good Use of Color.
+
+```{r}
+g_4_color <- data %>% 
+  slice_sample(prop = 0.01) %>% 
+  ggplot(aes(x = percent_fluid * 100, y = Pred, color = label)) + 
+  geom_smooth(se = F) +
+  xlab("Percent Saline Contamination") + ylab("Predicted Probability") + 
+  xlim(0, 50) + ylim(0, 1) +
+  scale_color_manual(values = c("D5NS" = primary, "D5LR" = '#A57C7DFF', "NS" = 'gray50', "LR" = "gray75")) +
+  theme(axis.title = element_text(size = 18, face = "bold.italic"), axis.text = element_text(size = 12, face = "italic"), axis.ticks = element_blank())
+g_4_color
+```
+
+## Be Smart About Legends.
+
+```{r}
+g_4_color <-  
+  ggplot(data = data %>% mutate(label = ifelse(grepl("D5", label), as.character("D5"), as.character(label))) %>%
+  slice_sample(prop = 0.02), aes(x = percent_fluid * 100, y = Pred, color = label, label = as.character(label))) + 
+  geom_textsmooth(aes(label = label), method = "loess", hjust = 0.25, size = 8, linewidth = 1.25) +
+  xlab("Percent Saline Contamination") + ylab("Predicted Probability") + 
+  xlim(0, 50) + ylim(0, 1) +
+  scale_color_manual(values = c("D5" = primary,"NS" = 'gray50', "LR" = "gray75")) +
+  theme(axis.title = element_text(size = 18, face = "bold.italic"), axis.text = element_text(size = 12, face = "italic"), axis.ticks = element_blank(), legend.position = "none")
+g_4_color
+```
+
+## Keep Colors Consistent.
+
+![](images/GMM_Figure-01.png){fig-align="center"}
+
+## Enough About Color...
+
+![https://www.pngwing.com/en/rainbowdash](images/paste-9CB93291.png)
+
+## Font is important too!!!
+
+. . .
+
+![Good visualizations clearly communicate their full dataset, but have one key message.](https://www.edwardtufte.com/tufte/graphics/minard_lg.gif)
+
+## Why Is Everyone Rebranding...?
+
+![Companies who have changed their logos since 2010.](images/Screen%20Shot%202022-09-03%20at%208.17.03%20PM.png)
+
+## What is "Sans"?
+
+![](images/Screen%20Shot%202022-09-03%20at%208.19.30%20PM.png){width="668"}
+
+## Visualizing Laboratory Data.
+
+![](images/boxplots.gif)
+
+Boxplots suffer from the same pitfalls as summary statistics.
+
+## Revisiting "The Bad"
+
+https://engaging-data.com/county-electoral-map-land-vs-population/
+
+## Show Me The Data
+
+```{r}
+g_4_color <-  
+  ggplot(data = data %>% mutate(label = ifelse(grepl("D5", label), as.character("D5"), as.character(label))) %>%
+  slice_sample(prop = 0.01), aes(x = percent_fluid * 100, y = Pred, color = label, label = as.character(label))) + 
+  geom_textsmooth(aes(label = label), method = "loess", hjust = 0.25, size = 8, linewidth = 1.25) +
+  xlab("Percent Saline Contamination") + ylab("Predicted Probability") + 
+  xlim(0, 50) + ylim(0, 1) +
+  scale_color_manual(values = c("D5" = primary,"NS" = 'gray50', "LR" = "gray75")) +
+  theme(axis.title = element_text(size = 18, face = "bold.italic"), axis.text = element_text(size = 12, face = "italic"), axis.ticks = element_blank(), legend.position = "none")
+g_4_color
+```
+
+## Show Me The Data
+
+```{r}
+g_4_color <-  
+  ggplot(data = data %>% mutate(label = ifelse(grepl("D5", label), as.character("D5"), as.character(label))) %>%
+  slice_sample(prop = 0.01), aes(x = percent_fluid * 100, y = Pred, color = label, label = as.character(label))) + 
+  geom_point(data = data %>% mutate(label = ifelse(grepl("D5", label), as.character("D5"), as.character(label)))) + 
+  xlab("Percent Saline Contamination") + ylab("Predicted Probability") + 
+  xlim(0, 50) + ylim(0, 1) +
+  scale_color_manual(values = c("D5" = primary,"NS" = 'gray50', "LR" = "gray75")) +
+  theme(axis.title = element_text(size = 18, face = "bold.italic"), axis.text = element_text(size = 12, face = "italic"), axis.ticks = element_blank(), legend.position = "none")
+g_4_color
+```
+
+## Yikes... Let's Try Splitting It Back Out
+
+```{r}
+ggplot(data = data, aes(x = percent_fluid, y = Pred, fill = label, color = label)) +
+  xlim(0, 0.5) + ylim(0, 1) + 
+  geom_point(data = data, shape = 16, stroke = 0, alpha = 0.25) +
+#  stat_lineribbon(aes(fill_ramp = stat(level)), 
+#                  size = 1, alpha = 0.5, show.legend = F) + 
+#  stat_lineribbon(.width = 0, size = 1, show.legend = F, color = "black") +
+  scale_fill_manual(values = color_map_global) + 
+  scale_color_manual(values = color_map_global) +
+  facet_wrap(~ fct_rev(label), nrow = 1) + 
+  xlab("Contamination Ratio") + ylab("Model Predicted Probability") + 
+  theme(axis.text.x = element_text(face = "italic", size = 10), legend.position = "none", strip.text.x = element_text(size = 18, face = "bold.italic"), axis.title = element_text(size = 16))
+```
+
+## Still A Lot Going On Here...
+
+```{r}
+ggplot(data = data, aes(x = percent_fluid, y = Pred, fill = label, color = label)) +
+  xlim(0, 0.5) + ylim(0, 1) + 
+  geom_point(data = data, shape = 16, stroke = 0, alpha = 0.25) +
+#  stat_lineribbon(aes(fill_ramp = stat(level)), 
+#                  size = 1, alpha = 0.5, show.legend = F) + 
+  stat_lineribbon(.width = 0, size = 1, show.legend = F, color = "black") +
+  scale_fill_manual(values = color_map_global) + 
+  scale_color_manual(values = color_map_global) +
+  facet_wrap(~ fct_rev(label), nrow = 1) + 
+  xlab("Contamination Ratio") + ylab("Model Predicted Probability") + 
+  theme(axis.text.x = element_text(face = "italic", size = 10), legend.position = "none", strip.text.x = element_text(size = 18, face = "bold.italic"), axis.title = element_text(size = 16))
+```
+
+## Show Distributions For Repeated Experiments.
+
+```{r}
+ggplot(data = data, aes(x = percent_fluid, y = Pred, fill = label, color = label)) +
+  xlim(0, 0.5) + ylim(0, 1) + 
+#  geom_point(data = data, shape = 16, stroke = 0, alpha = 0.25) +
+  stat_lineribbon(aes(fill_ramp = stat(level)), .width = c(0.25, 0.5, 0.75), size = 1, alpha = 1, show.legend = T) + 
+  stat_lineribbon(.width = 0, size = 1, show.legend = F, color = "black") +
+  scale_fill_manual(values = color_map_global) + 
+  scale_color_manual(values = color_map_global) +
+  facet_wrap(~ fct_rev(label), nrow = 1) + 
+  xlab("Contamination Ratio") + ylab("Model Predicted Probability") + 
+  theme(axis.text.x = element_text(face = "italic", size = 10), strip.text.x = element_text(size = 18, face = "bold.italic"), axis.title = element_text(size = 16))
+```
+
+## Playing With Transparency
+
+```{r}
+ggplot(data = data, aes(x = percent_fluid, y = Pred, fill = label, color = label)) +
+  xlim(0, 0.5) + ylim(0, 1) + 
+  stat_lineribbon(aes(fill_ramp = stat(level)), .width = c(0.25, 0.5, 0.75), size = 1, alpha = 1, show.legend = T) + 
+  geom_point(data = data, shape = 20, stroke = 0, alpha = 0.05) +
+  stat_lineribbon(.width = 0, size = 1, show.legend = F, color = "black") +
+  scale_fill_manual(values = color_map_global) + 
+  scale_color_manual(values = color_map_global) +
+  facet_wrap(~ fct_rev(label), nrow = 1) + 
+  xlab("Contamination Ratio") + ylab("Model Predicted Probability") + 
+  theme(axis.text.x = element_text(face = "italic", size = 10), legend.position = "none", strip.text.x = element_text(size = 18, face = "bold.italic"), axis.title = element_text(size = 16))
+```
+
+## Adding Some Context...
+
+![](Figures/GMM_Figure.png)
+
+## Putting It All Together
+
+::: columns
+::: {.column width="50%"}
+Do:
+
+-   Tell a story.
+
+-   Show only what is necessary.
+
+-   Use accessible colors and fonts.
+:::
+
+::: {.column width="50%"}
+Don't:
+
+-   Overwhelm the reader!
+
+-   Misrepresent the data.
+
+-   And Finally....
+:::
+:::
+
+## Don't Do This...
+
+![CpG Island Hypermethylation Profile of Human Cancer](images/paste-DDB4A72E.png)

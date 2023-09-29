@@ -1,0 +1,717 @@
+---
+title: "Machine Learning 101"
+subtitle: "Key Terms and Concepts for Pathology Residents"
+author: "Nick Spies"
+format: 
+  revealjs: 
+    fragments: true
+    footer: "Machine Learning 101: Key Terms and Concepts"
+    transition: none
+    background-transition: fade
+    transition-speed: fast
+    theme: sky
+    shift-heading-level-by: 1
+editor: visual
+echo: false
+---
+
+```{r include=FALSE, echo=FALSE}
+library(tidyverse)
+library(tidymodels)
+library(ggpubr)
+library(gt)
+library(DALEX)
+library(DALEXtra)
+library(themis)
+
+theme_ns <- theme(text = element_text(family = "Helvetica"), 
+                  title = element_text(face = "bold"), 
+                  axis.title = element_text(size = 12),
+                  axis.line = element_line(),  
+                  legend.title = element_text(size = 10, face = "bold.italic"),
+                  legend.title.align = 0.5,
+                  panel.grid = element_blank(),
+                  panel.background = element_blank(),
+                  strip.text = element_text(size = 10, face = "italic"),
+                  strip.background = element_blank())
+theme_set(theme_ns)
+##### ggplot_imp #####
+ggplot_imp <- function(...) {
+  obj <- list(...)
+  metric_name <- attr(obj[[1]], "loss_name")
+  metric_lab <- paste(metric_name, 
+                      "after permutations\n(higher indicates more important)")
+  
+  full_vip <- bind_rows(obj) %>%
+    filter(variable != "_baseline_")
+  
+  perm_vals <- full_vip %>% 
+    filter(variable == "_full_model_") %>% 
+    group_by(label) %>% 
+    summarise(dropout_loss = mean(dropout_loss))
+  
+  p <- full_vip %>%
+    filter(variable != "_full_model_") %>% 
+    mutate(variable = fct_reorder(variable, dropout_loss)) %>%
+    ggplot(aes(dropout_loss, variable)) 
+  if(length(obj) > 1) {
+    p <- p + 
+      facet_wrap(vars(label)) +
+      geom_vline(data = perm_vals, aes(xintercept = dropout_loss, color = label),
+                 size = 1.4, lty = 2, alpha = 0.7) +
+      geom_boxplot(aes(color = label, fill = label), alpha = 0.2)
+  } else {
+    p <- p + 
+      geom_vline(data = perm_vals, aes(xintercept = dropout_loss),
+                 size = 1.4, lty = 2, alpha = 0.7) +
+      geom_boxplot(fill = "#91CBD765", alpha = 0.4)
+    
+  }
+  p +
+    theme(legend.position = "none") +
+    labs(x = metric_lab, 
+         y = NULL,  fill = NULL,  color = NULL)
+}
+```
+
+# Objectives
+
+::: {.fragment .fade-in-then-semi-out}
+-   Define key terms used in machine learning and how they relate to common medicine synonyms.
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   Demonstrate the workflow for building and implementing a machine learning model.
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   Highlight common pitfalls and failure modes for these models.
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   Explore methods for assessing the performance and explainability of their predictions.
+:::
+
+# Motivation
+
+![](images/paste-961B7B3C.png)
+
+# Machine Learning is Coming...
+
+![](images/paste-4CACCD0E.png)
+
+# What is Machine Learning?
+
+::: columns
+::: {.column width="60%"}
+::: {.fragment .fade-in}
+Any algorithm that...
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   Imitates human behavior
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   Does not require explicit instruction
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   Improves with successive iterations
+:::
+:::
+
+::: {.column width="40%"}
+::: {.fragment .fade-in}
+![](images/AI_ML_DL.png){fig-align="right" width="382"}
+:::
+:::
+:::
+
+# KEY TAKE HOME POINT #1 {background-color="darkred"}
+
+::: {.absolute top="300"}
+***ML algorithms simulate human behavior, and can improve their performance over time without explicit instructions.***
+:::
+
+# Why Bother?
+
+::: {.fragment .fade-in-then-semi-out}
+-   Improves human predictions
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   Automate repetitive processes
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   Discover complex interactions
+:::
+
+# Building A ML Pipeline
+
+::: {layout="[[-1], [1], [-1]]"}
+![*Source: Microsoft Azure ML Documentation*](images/paste-8F6CD616.png){fig-alt="https://learn.microsoft.com/en-us/azure/machine-learning/overview-what-is-azure-machine-learning"}
+:::
+
+# Let's See For Ourselves!
+
+::: {.fragment .fade-in-then-semi-out}
+-   PTHrP can help the work-up of hypercalcemia.
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   But, it is often ordered in low-probability settings...
+:::
+
+![](images/paste-3B1E202D.png){fig-align="center"}
+
+# The Task
+
+-   *Predict PTHrP results at the time of order.*
+
+![](images/paste-7B5B35BA.png){fig-align="center"}
+
+# Preparing the Data
+
+```{r}
+
+raw <- read_delim("Data/AACC_Kaggle_2022_PTHrP_input_data.txt")
+raw %>% head %>% gt::gt()
+```
+
+::: incremental
+-   To start building models, we must <span class="fragment .fade-in">*apply structure*, <span class="fragment .fade-in">*assign labels*, <span class="fragment .fade-in">and *select features*.
+:::
+
+# Terminology
+
+::: incremental
+-   ***Supervised*** Learning uses labeled input data to generate predictions.
+-   Used for classification, regression.
+:::
+
+::: {.fragment .fade-in}
+![](images/Screenshot%202023-01-06%20at%201.24.35%20PM.png){fig-align="center"}
+:::
+
+# Terminology
+
+::: incremental
+-   ***Unsupervised*** Learning discovers underlying patterns within the data.
+-   Used for clustering, dimensionality reduction.
+:::
+
+::: fragment
+![](images/Screenshot%202023-01-06%20at%201.29.49%20PM.png){fig-align="center"}
+:::
+
+# Comparison
+
++------+------------------------------------+-------------------------------+
+|      | *Supervised*                       | *Unsupervised*                |
++======+====================================+===============================+
+| Pros | Greater predictive performance.    | Easier to implement.          |
++------+------------------------------------+-------------------------------+
+| Cons | Requires accurate training labels. | Sensitive to tuning.          |
+|      |                                    |                               |
+|      | Prone to overfitting.              | Prone to over-interpretation. |
++------+------------------------------------+-------------------------------+
+
+# Preparing the Data
+
+```{r}
+
+data_processed <- read_delim("Data/PTHrp_ML_input.csv")
+cols_to_show <- c("patient_id", "Calcium.1", "Calcium.2", "Calcium.3", "PTH Intact.1", "PTH Intact.2", "PTH Intact.3", "PTH Related Pro.1")
+
+data_processed <- data_processed %>% mutate(TARGET = ifelse(`PTH Related Pro.1` > 4.2, 1, 0)) 
+data_processed %>% select(all_of(cols_to_show)) %>% head %>% gt() %>% sub_missing()
+
+```
+
+Models require ***clean***, ***complete***, and ***structured*** data to train.
+
+# Terminology
+
+```{r}
+data_processed %>% select(all_of(cols_to_show)) %>% head %>% gt() %>% sub_missing() %>%
+  tab_style(style = list(cell_fill(color = "lightcyan"), "font-variant: small-caps;"), locations = cells_body(columns = c(Calcium.1, Calcium.2, Calcium.3, `PTH Intact.1`, `PTH Intact.2`, `PTH Intact.3`)))
+```
+
+***Features*** are the columns that the model will use to make the prediction.
+
+# Terminology
+
+```{r}
+data_processed %>% select(all_of(cols_to_show)) %>% head %>% gt() %>% sub_missing() %>% 
+  tab_style(style = list(cell_fill(color = "lightpink"), "font-variant: small-caps;"), locations = cells_body(columns = `PTH Related Pro.1`))
+```
+
+The ***Target*** or ***Outcome*** is the variable being predicted.
+
+# Terminology
+
+```{r}
+data_processed %>% select(all_of(cols_to_show)) %>% mutate(TARGET = `PTH Related Pro.1`) %>% select(-`PTH Related Pro.1`) %>% head %>% gt() %>% sub_missing() %>% 
+  tab_style(style = list(cell_fill(color = "lightpink"), "font-variant: small-caps;"), locations = cells_body(columns = TARGET))
+```
+
+***Regression*** is the task of predicted a *numerical* target.
+
+# Terminology
+
+```{r}
+data_processed %>% select(all_of(cols_to_show)) %>% mutate(TARGET = ifelse(`PTH Related Pro.1` > 4.2, "POSITIVE", "NEGATIVE")) %>% select(-`PTH Related Pro.1`) %>% head %>% gt() %>% sub_missing() %>% 
+  tab_style(style = list(cell_fill(color = "lightpink"), "font-variant: small-caps;"), locations = cells_body(columns = TARGET))
+```
+
+***Classification*** is the task of predicted a *binary* target.
+
+# Terminology
+
+::: {.absolute top="325"}
+We will build a ***Supervised Classifier*** to predict a binary target --- Positive or Negative PTHrP results.
+:::
+
+# Preparing the Data
+
+```{r}
+data_processed %>% select(all_of(cols_to_show)) %>% mutate(TARGET = ifelse(`PTH Related Pro.1` > 4.2, "POSITIVE", "NEGATIVE")) %>% select(-`PTH Related Pro.1`) %>% head %>% gt() %>% sub_missing()
+```
+
+# Feature Engineering
+
+```{r}
+
+data_processed %>% select(patient_id, matches("max.all"), TARGET) %>% head() %>% gt() %>% sub_missing() 
+```
+
+We can add features from our existing data that might be important for predicting the outcome.
+
+# Handling Missing Data
+
+::: {.fragment .fade-in}
+-   Most model types do not allow for missing data.
+:::
+
+::: {.fragment .fade-in}
+-   The most common solutions are ***filling*** or ***imputation***.
+:::
+
+::: {.fragment .fade-in}
+-   Missingness can also be a feature!
+:::
+
+# KEY TAKE-HOME POINT #2 {background-color="darkred"}
+
+::: {.absolute top="300"}
+***Feature selection, feature engineering, and the handling of missing data are the most important parts of the entire ML workflow.***
+:::
+
+# Back to the Pipeline...
+
+::: {layout="[[-1], [1], [-1]]"}
+![*Source: Microsoft Azure ML Documentation*](images/paste-8F6CD616.png){alt="Source: Microsoft Azure ML Documentation" fig-alt="https://learn.microsoft.com/en-us/azure/machine-learning/overview-what-is-azure-machine-learning"}
+:::
+
+# Activity #1
+
+## Feature Selection and Engineering
+
+-   Break off into two teams.
+
+-   Make a list of lab values that will be used as features for your team's model.
+
+-   Engineer one additional feature.
+
+# Training the Model
+
+::: {.absolute top="325"}
+Next, we will build and train our model...
+:::
+
+# Model Selection
+
+::: columns
+::: {.column width="40%"}
+::: incremental
+::: r-stretch
+-   Each model architecture has its pros and cons.\
+
+-   Most imporant decision is the balance between ***bias*** and ***variance***.\
+
+-   The current SOTA for tabular data is [XGBoost](https://xgboost.readthedocs.io/en/stable/).
+:::
+:::
+:::
+
+::: {.column width="50%"}
+![](images/Screenshot%202023-01-09%20at%202.23.52%20PM-01.png){fig-align="right"}
+:::
+:::
+
+# Bias-Variance Trade-off
+
+::: incremental
+-   ***Variance*** is the amount that the model changes its prediction with new training observations.
+
+-   ***Bias*** is the amount of error between training predictions and training labels.
+:::
+
+![](images/Screenshot%202023-01-09%20at%203.31.56%20PM.png){fig-align="center"}
+
+::: incremental
+-   Ideal models minimize bias without excess variance (overfitting).
+:::
+
+# Activity #2 - Model Selection
+
+![](images/Screenshot%202023-01-09%20at%2010.29.50%20PM.png)
+
+# Training The Models
+
+```{r include=FALSE}
+
+input <- data_processed %>% select(matches("\\.1") & !matches("\\.10") & !matches("\\.11"), TARGET) %>% mutate(TARGET = as.factor(TARGET)) %>% filter(!is.na(TARGET))
+
+input <- input %>% select(where(~mean(is.na(.)) < 0.1))
+input <- input %>% filter(rowSums(is.na(.)) < 10)
+
+input_data <- initial_split(input, strata = TARGET)
+
+metrics <- metric_set(accuracy, sensitivity, spec, ppv, npv)
+```
+
+::: {.fragment .fade-in-then-semi-out}
+*First, we split our data into training, testing, and cross validation sets.*
+
+```{r echo=TRUE}
+
+train <- training(input_data)
+test <- testing(input_data)
+cv <- vfold_cv(train, v = 5, strata = TARGET)
+
+```
+:::
+
+```{r}
+
+base_rec <- recipe(TARGET ~ ., train) %>% step_impute_knn(all_predictors())
+base_model <- rand_forest() %>% set_mode("classification") %>% set_engine("ranger", importance = "impurity")
+base_workflow <- workflow() %>% add_recipe(base_rec) %>% add_model(base_model)
+base_cv <- base_workflow %>% fit_resamples(cv, metrics = metrics)
+base_fit <- base_workflow %>% fit(train)
+base_vip <- base_fit %>% extract_fit_parsnip() %>% vip::vip()
+
+```
+
+::: {.fragment .fade-in}
+*Then, we define our features and models.*
+
+```{r echo=TRUE}
+
+team1_recipe <- recipe(TARGET ~ ., train) %>% step_impute_knn(all_predictors())
+team2_recipe <- recipe(TARGET ~ ., train) %>% step_impute_knn(all_predictors())
+
+team1_model <- rand_forest() %>% set_mode("classification")
+team2_model <- boost_tree() %>% set_mode("classification")
+
+```
+:::
+
+```{r echo=FALSE}
+team1_workflow <- workflow() %>% add_recipe(team1_recipe) %>% add_model(team1_model)
+team2_workflow <- workflow() %>% add_recipe(team2_recipe) %>% add_model(team2_model)
+```
+
+# Fitting The Models
+
+::: {.fragment .fade-in-then-semi-out}
+*Now we'll use our 5-fold cross-validation set to fit our models.*
+
+```{r echo=TRUE}
+team1_cv <- team1_workflow %>% fit_resamples(cv, metrics = metrics)
+team2_cv <- team2_workflow %>% fit_resamples(cv, metrics = metrics)
+```
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+*Then, see how they perform!*
+
+::: columns
+::: {.column width="50%"}
+Team 1
+
+```{r}
+team1_cv %>% collect_metrics() %>% select(.metric, mean, std_err) %>% gt() %>% tab_options(table.font.size = 24) %>% fmt_number(decimals = 2, columns = c(mean, std_err))
+```
+:::
+
+::: {.column width="50%"}
+Team 2
+
+```{r}
+team2_cv %>% collect_metrics() %>% select(.metric, mean, std_err) %>% gt() %>% tab_options(table.font.size = 24) %>% fmt_number(decimals = 2, columns = c(mean, std_err))
+```
+:::
+:::
+:::
+
+# Perfect Performance
+
+### *Too Good to Be True...?*
+
+```{r}
+#| fig-align: center
+base_vip
+```
+
+# Information Leakage
+
+::: incremental
+-   Using information not available at the time of prediction leads to over-estimation of performance.
+
+-   Can be quite obvious (one variable dominates the importance plot), or much more subtle...
+
+-   Nobody is immune...
+:::
+
+# Information Leakage
+
+![](images/Screenshot%202023-01-10%20at%2010.49.20%20AM.png){fig-align="center"}
+
+# How Do We Fix It?
+
+```{r echo=TRUE}
+input_data <- initial_split(input %>% select(-`PTH Related Pro.1`), strata = TARGET)
+
+train <- training(input_data)
+test <- testing(input_data)
+cv <- vfold_cv(train, v = 5, strata = TARGET)
+
+team1_recipe <- recipe(TARGET ~ ., train) %>% step_impute_knn(all_predictors())
+team2_recipe <- recipe(TARGET ~ ., train) %>% step_impute_knn(all_predictors())
+
+team1_workflow <- workflow() %>% add_recipe(team1_recipe) %>% add_model(team1_model)
+team2_workflow <- workflow() %>% add_recipe(team2_recipe) %>% add_model(team2_model)
+
+team1_fit <- team1_workflow %>% fit(train)
+team2_fit <- team2_workflow %>% fit(train)
+```
+
+# Check Test Set Performance
+
+::: columns
+::: {.column width="50%"}
+***Team 1***
+
+```{r}
+team1_fit %>% predict(test) %>% bind_cols(PRED = .[[1]], TARGET = test$TARGET) %>% metrics(truth = TARGET, estimate = PRED) %>% select(-.estimator) %>% gt() %>% tab_options(table.font.size = 36) %>% fmt_number(decimals = 2, columns = .estimate)
+```
+:::
+
+::: {.column width="50%"}
+***Team 2***
+
+```{r}
+team2_fit %>% predict(test) %>% bind_cols(PRED = .[[1]], TARGET = test$TARGET) %>% metrics(truth = TARGET, estimate = PRED) %>% select(-.estimator) %>% gt() %>% tab_options(table.font.size = 36) %>% fmt_number(decimals = 2, columns = .estimate)
+```
+:::
+:::
+
+# Digging Deeper...
+
+::: columns
+::: {.column width="50%"}
+***Team 1***
+
+```{r}
+team1_fit %>% predict(test) %>% bind_cols(PRED = .[[1]], TARGET = test$TARGET) %>% conf_mat(truth = TARGET, estimate = PRED)
+```
+:::
+
+::: {.column width="50%"}
+***Team 2***
+
+```{r}
+team2_fit %>% predict(test) %>% bind_cols(PRED = .[[1]], TARGET = test$TARGET) %>% conf_mat(truth = TARGET, estimate = PRED)
+```
+:::
+:::
+
+::: {.absolute top="500"}
+***Predicting a negative result every time gives you great summary statistics!***
+:::
+
+# Dealing With Class Imbalance
+
+::: {.absolute top="200"}
+***Some metrics are better than others when assessing performance with imbalanced classes.***
+:::
+
+::: {.absolute top="400"}
+::: incremental
+-   Precision-Recall Curves
+
+-   F1 Score
+
+-   Matthew's Correlation Coefficient (phi statistic)
+:::
+:::
+
+# Precision-Recall Curves
+
+```{r}
+pr1 <- team1_fit %>% predict(test, type = "prob") %>% bind_cols(PRED = .$.pred_1, TRUTH = test$TARGET) %>% pr_curve(estimate = PRED, truth = TRUTH, event_level = "second")
+pr2 <- team2_fit %>% predict(test, type = "prob") %>% bind_cols(PRED = .$.pred_1, TRUTH = test$TARGET) %>% pr_curve(estimate = PRED, truth = TRUTH, event_level = "second")
+
+ggplot() + 
+  geom_line(data = pr1, aes(x = recall, y = precision), color = "blue", linewidth = 2) +
+  geom_line(data = pr2, aes(x = recall, y = precision), color = "red", linewidth = 2)
+
+```
+
+# KEY TAKE-HOME POINT #3 {background-color="darkred"}
+
+::: {.absolute top="300"}
+***Predicting a rare outcome can lead to misleading summary statistics!***
+:::
+
+# How Do We Fix It...?
+
+::: incremental
+-   Up-sampling
+
+-   Down-sampling
+
+-   Synthetic Data
+
+-   Calibrating the predicted probabilities.
+:::
+
+# Let's Try Up-Sampling.
+
+::: {.absolute top="150"}
+[SMOTE](https://arxiv.org/abs/1106.1813) and its many variations are the SOTA for up-sampling.
+:::
+
+::: {.absolute top="300"}
+```{r echo=TRUE}
+team1_recipe <- 
+  recipe(TARGET ~ ., train) %>% 
+    step_impute_knn(all_predictors()) %>% 
+    step_smote(TARGET)
+
+team1_workflow <- 
+  workflow() %>% 
+    add_recipe(team1_recipe) %>% 
+    add_model(team1_model)
+
+team1_fit <- team1_workflow %>% fit(train)
+```
+:::
+
+```{r echo=FALSE}
+team2_recipe <- 
+  recipe(TARGET ~ ., train) %>% 
+    step_impute_knn(all_predictors()) %>% 
+    step_smote(TARGET)
+
+team2_workflow <- 
+  workflow() %>% 
+    add_recipe(team2_recipe) %>% 
+    add_model(team2_model)
+
+team2_fit <- team2_workflow %>% fit(train)
+```
+
+# Up-Sampling Performance
+
+::: columns
+::: {.column width="50%"}
+***Team 1***
+
+```{r}
+team1_fit %>% predict(test) %>% bind_cols(PRED = .[[1]], TARGET = test$TARGET) %>% conf_mat(truth = TARGET, estimate = PRED)
+```
+:::
+
+::: {.column width="50%"}
+***Team 2***
+
+```{r}
+team2_fit %>% predict(test) %>% bind_cols(PRED = .[[1]], TARGET = test$TARGET) %>% conf_mat(truth = TARGET, estimate = PRED)
+```
+:::
+:::
+
+# But At What Cost...?
+
+```{r}
+pr1_train <- team1_fit %>% predict(train, type = "prob") %>% bind_cols(PRED = .$.pred_1, TRUTH = train$TARGET) %>% pr_curve(estimate = PRED, truth = TRUTH, event_level = "second")
+pr1_test <- team1_fit %>% predict(test, type = "prob") %>% bind_cols(PRED = .$.pred_1, TRUTH = test$TARGET) %>% pr_curve(estimate = PRED, truth = TRUTH, event_level = "second")
+
+pr2_train <- team2_fit %>% predict(train, type = "prob") %>% bind_cols(PRED = .$.pred_1, TRUTH = train$TARGET) %>% pr_curve(estimate = PRED, truth = TRUTH, event_level = "second")
+pr2_test <- team2_fit %>% predict(test, type = "prob") %>% bind_cols(PRED = .$.pred_1, TRUTH = test$TARGET) %>% pr_curve(estimate = PRED, truth = TRUTH, event_level = "second")
+
+ggplot() + 
+  geom_line(data = pr1_train, aes(x = recall, y = precision), color = "blue", linewidth = 2) +
+  geom_line(data = pr1_test, aes(x = recall, y = precision), color = "blue", linewidth = 2, alpha = 0.5) +
+  geom_line(data = pr2_train, aes(x = recall, y = precision), color = "red", linewidth = 2) + 
+  geom_line(data = pr2_test, aes(x = recall, y = precision), color = "red", linewidth = 2, alpha = 0.5) + 
+  annotate("text", label = "Train", y = 0.85, x = 0.8, fontface = "bold.italic", size = 12) + 
+  annotate("text", label = "Test", y = 0.15, x = 0.3, fontface = "bold.italic", size = 12, alpha = 0.5)
+```
+
+# Over-fitting
+
+::: {.fragment .fade-in-then-semi-out}
+-   High variance architectures, synthetic data, and up-sampling can cause the models to "memorize" the training set.
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   Diagnosed by significant performance loss between the train and test set.
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   Cross-validation, external validation, and explainability techniques are crucial for avoiding harm from over-fitting.
+:::
+
+# Back to the Pipeline...
+
+::: {layout="[[-1], [1], [-1]]"}
+![*Source: Microsoft Azure ML Documentation*](images/paste-8F6CD616.png){alt="Source: Microsoft Azure ML Documentation" fig-alt="https://learn.microsoft.com/en-us/azure/machine-learning/overview-what-is-azure-machine-learning"}
+:::
+
+# Miscellaneous Topics
+
+::: {.fragment .fade-in-then-semi-out}
+-   Why didn't we talk about Deep Learning??
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   When will AI sign-out my cases for me??
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+-   How can I learn more??
+:::
+
+# KEY TAKE-HOME POINT #4 {background-color="darkred"}
+
+::: {.fragment .fade-in-then-semi-out}
+::: {.absolute top="200"}
+***AI will not be replacing you anytime soon... but it will be a daily part of your career.***
+:::
+:::
+
+::: {.fragment .fade-in-then-semi-out}
+::: {.absolute top="400"}
+***Learning common failure modes, red flags, and limitations will be a key skill for the future pathologist and medical director.***
+:::
+:::
+
+# Questions?
+
+![](images/paste-FB94284A.png){fig-align="center"}

@@ -1,2 +1,2 @@
-# educational_materials
- 
+# educational_content
+A Repo for Educational Materials

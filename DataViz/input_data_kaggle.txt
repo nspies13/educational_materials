@@ -1,0 +1,131 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Predicting PTHrP Result - AACC 2022 Annual Meeting | Kaggle</title>
+  <meta charset="utf-8" />
+    <meta name="robots" content="index, follow" />
+  <meta name="description" content="Presented by the AACC Data Analytics Committee and WashU Pathology Informatics" />
+  <meta name="turbolinks-cache-control" content="no-cache" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#008ABC" />
+  <script nonce="iyPIhnSqgYU&#x2B;DhICyZI/Zw==" type="text/javascript">
+    window["pageRequestStartTime"] = 1672520907198;
+    window["pageRequestEndTime"] = 1672520907249;
+    window["initialPageLoadStartTime"] = new Date().getTime();
+  </script>
+  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin="anonymous" /><link rel="preconnect" href="https://stats.g.doubleclick.net" /><link rel="preconnect" href="https://storage.googleapis.com" /><link rel="preconnect" href="https://apis.google.com" />
+  <link href="/static/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+  <link rel="manifest" href="/static/json/manifest.json" crossorigin="use-credentials">
+
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/icon?family=Google+Material+Icons"
+    rel="preload" as="style" />
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,400i,500,500i,600,600i,700,700i"
+    rel="preload" as="style" />
+  <link href="https://fonts.googleapis.com/icon?family=Google+Material+Icons"
+    rel="stylesheet" media="print" id="async-google-font-1" />
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,400i,500,500i,600,600i,700,700i"
+    rel="stylesheet" media="print" id="async-google-font-2" />
+  <script nonce="iyPIhnSqgYU&#x2B;DhICyZI/Zw==" type="text/javascript">
+    const styleSheetIds = ["async-google-font-1", "async-google-font-2"];
+    styleSheetIds.forEach(function (id) {
+      document.getElementById(id).addEventListener("load", function() {
+        this.media = "all";
+      });
+    });
+  </script>
+
+    <link rel="stylesheet" type="text/css" href="/static/assets/vendor.css?v=06cb5cb9eaebcdbf169c" />
+    <link rel="stylesheet" type="text/css" href="/static/assets/app.css?v=f3de59c4d46ee1b8c672" />
+  
+    
+ 
+      <script nonce="iyPIhnSqgYU&#x2B;DhICyZI/Zw==">
+        try{(function(a,s,y,n,c,h,i,d,e){d=s.createElement("style");
+        d.appendChild(s.createTextNode(""));s.head.appendChild(d);d=d.sheet;
+        y=y.map(x => d.insertRule(x + "{ opacity: 0 !important }"));
+        h.start=1*new Date;h.end=i=function(){y.forEach(x => x<d.cssRules.length ? d.deleteRule(x) : {})};
+        (a[n]=a[n]||[]).hide=h;setTimeout(function(){i();h.end=null},c);h.timeout=c;
+        })(window,document,['.site-header-react__nav'],'dataLayer',2000,{'GTM-52LNT9S':true});}catch(ex){}
+    </script>
+    <script nonce="iyPIhnSqgYU&#x2B;DhICyZI/Zw==">
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'UA-12629138-1', {
+            'optimize_id': 'GTM-52LNT9S',
+            'displayFeaturesTask': null,
+            'send_page_view': false,
+            'content_group1': 'Competitions'
+        });
+    </script>
+    <script nonce="iyPIhnSqgYU&#x2B;DhICyZI/Zw==" async src="https://www.googletagmanager.com/gtag/js?id=UA-12629138-1"></script>
+
+  
+    
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@kaggle" />
+    <meta name="og:url" content="https://kaggle.com/competitions/aacc-2022-predicting-pthrp-results" />
+    <meta name="og:title" content="Predicting PTHrP Result - AACC 2022 Annual Meeting" />
+    <meta name="og:description" content="Presented by the AACC Data Analytics Committee and WashU Pathology Informatics" />
+    <meta name="og:image" content="https://storage.googleapis.com/kaggle-competitions/kaggle/35504/logos/thumb76_76.png?t=2022-04-08-00-36-06" />
+
+
+  <meta name="twitter:site" content="@Kaggle" /> 
+  
+    
+
+  
+    
+
+  
+    
+
+
+    <script nonce="iyPIhnSqgYU&#x2B;DhICyZI/Zw==">window['useKaggleAnalytics'] = true;</script>
+
+  <script id="gapi-target" nonce="iyPIhnSqgYU&#x2B;DhICyZI/Zw==" src="https://apis.google.com/js/api.js" defer
+    async></script>
+  <script nonce="iyPIhnSqgYU+DhICyZI/Zw==" src="/static/assets/runtime.js?v=ae0ab8adf43ef4d3b59b" data-turbolinks-track="reload"></script>
+  <script nonce="iyPIhnSqgYU+DhICyZI/Zw==" src="/static/assets/vendor.js?v=b55898abc0dc25732071" data-turbolinks-track="reload"></script>
+  <script nonce="iyPIhnSqgYU+DhICyZI/Zw==" src="/static/assets/app.js?v=c81603ee9a6335b404b9" data-turbolinks-track="reload"></script>
+    <script nonce="iyPIhnSqgYU&#x2B;DhICyZI/Zw==" type="text/javascript">
+      window.kaggleStackdriverConfig = {
+        key: 'AIzaSyA4eNqUdRRskJsCZWVz-qL655Xa5JEMreE',
+        projectId: 'kaggle-161607',
+        service: 'web-fe',
+        version: 'ci',
+        userId: '0'
+      }
+    </script>
+</head>
+
+<body data-turbolinks="false">
+  <main>
+    
+
+
+
+
+
+<div id="site-container"></div>
+<div data-component-name="NavigationContainer" style="display: flex; flex-direction: column; flex: 1 0 auto;"></div><script class="kaggle-component" nonce="iyPIhnSqgYU+DhICyZI/Zw==">var Kaggle=window.Kaggle||{};Kaggle.State=Kaggle.State||[];Kaggle.State.push({"navigationType":"BOTH_NAV"});performance && performance.mark && performance.mark("NavigationContainer.componentCouldBootstrap");</script>
+<div id="site-body" class="hide">
+    
+
+
+<div data-component-name="CompetitionContainer" style="display: flex; flex-direction: column; flex: 1 0 auto;"></div><script class="kaggle-component" nonce="iyPIhnSqgYU+DhICyZI/Zw==">var Kaggle=window.Kaggle||{};Kaggle.State=Kaggle.State||[];Kaggle.State.push({"competitionId":35504,"competitionType":"COMPETITION_TYPE_PREDICTION","competitionTitle":"Predicting PTHrP Result - AACC 2022 Annual Meeting","briefDescription":"Presented by the AACC Data Analytics Committee and WashU Pathology Informatics","competitionHeaderImageUrl":"https://storage.googleapis.com/kaggle-competitions/kaggle/35504/logos/header.png?t=2022-04-08-21-06-43","organizationId":0,"dateEnabled":"2022-05-07T01:55:18.113Z","deadline":"2022-07-02T06:00:00Z","mergerDeadline":"2022-07-02T06:00:00Z","rewardQuantity":0,"totalTeams":24,"isInClass":true,"hostSegment":"HOST_SEGMENT_IN_CLASS","rules":{"id":157758,"postId":11255172,"content":"## The Rules\n\n1) Have fun!\n\n2) Submissions must be finalized prior to the deadline to be eligible for the presentation and travel support prizes.\n\n3) While certainly not required, sharing your approach in the [CODE](https://www.kaggle.com/competitions/aacc-2022-predicting-pthrp-results/code) or [DISCUSSION](https://www.kaggle.com/competitions/aacc-2022-predicting-pthrp-results/discussion) pages is highly encouraged!\n\n4) This de-identified dataset has been approved for use in this competition and deemed not human subjects research by the Institutional Review Board at Washington University in St Louis (approval numbers 202204007 and 202202087). The data is intended for educational use only, and any other use is prohibited.","mimeType":"text/markdown","name":"rules"},"dataIntro":{"id":157755,"postId":11255169,"content":"*This is a real, de-identified, clinical dataset. The use of these data for this competition has been reviewed and deemed not human subjects research by the Institutional Review Board at Washington University in St Louis (approval numbers 202204007 and 202202087). The data is intended for educational use only, and any other use is prohibited.*\n\n## The Data\nResults for all PTHrP orders since 2012 were retrieved from the laboratory information system along with all other results that would have been available at the time of the PTHrP order. For patients that had multiple PTHrP orders, we retained only the first order and its associated data. The data has been de-identified to protect the privacy of the patients, physicians, and institutions, but otherwise appears as it would in our laboratory information system, without additional cleaning or preprocessing. That part will be up to you!\n\nEach row of the data represents a single laboratory result, and the columns are explained below. \n\n## The Target\nYou should be predicting the PTHrP result as a binary classification, normal or abnormal, where abnormal is defined as above the reference range. Note that the reference range changed during this study period, as displayed in the **REFERENCE_RANGE** column. Your predictions should encode normal PTHrP results as 0, and abnormal results as 1.\n\n## The Features\nYou decide! We have provided an enormous feature space on which you can experiment. Use your domain expertise, favorite feature selection algorithms, and your creativity to engineer the best possible set of features to produce your predictions. \n\nIf you are unsure of where to start, take a look at the example we have provided on the [*Code*](https://www.kaggle.com/competitions/aacc-2022-predicting-pthrp-results/code) page. This example uses some markers in calcium homeostasis and a boosted tree model to make predictions. This is meant to act as a guide, but there is plenty of optimization that can be done to improve the performance. \n\n## The Files\n\n*   **input_data.txt** - A tab-separated, flat file containing the laboratory results available for each patient prior to the first PTHrP order, as described above. \n*   **PTHrP_train_results.txt** - The results of each PTHrp order for the training samples. Use this file to build and validate your models. This also contains some additional information about the PTHrP orders that might prove useful.\n*   **PTHrP_test_results_masked.txt** - The results file for the testing set. Your submission file should contain one prediction for each of the orders in this file. A random subset of these will be graded and used for the final standings. \n*   **submission_template.csv** - a sample submission file in the correct format.\n\n## Columns\n\n*   \u0060PATIENT_ID\u0060 - anonymized ID unique to each patient in the data. \n*   \u0060ORDERABLE\u0060\u00A0- panel from which the lab was ordered (e.g. CBC, BMP). \n*   \u0060TASK_ASSAY\u0060\u00A0- the discrete lab assay (e.g. hemoglobin, sodium). \n*   \u0060RESULT_VAL\u0060\u00A0- the numeric or character result of a task_assay (e.g. 12.5, 141).\n*   \u0060RESULT_UNITS\u0060\u00A0- units for the corresponding result (e.g. g/dL, mmol/L).\n*   \u0060NORMAL_LOW\u0060\u00A0- the lower limit of normal for this result from our LIS.  \n*   \u0060NORMAL_HIGH\u0060\u00A0- the upper limit of normal for this result from our LIS. \n*   \u0060NORMALCY\u0060\u00A0- a column that holds flags for high, low, abnormal, and critical results based on LIS rules.\n*   \u0060RESULT_STATUS\u0060\u00A0- the step in the final verification process for each result. \n*   \u0060ORDER_STATUS\u0060\u00A0- whether the order was completed, modified, or canceled. \n*   \u0060ORDER_PROVIDER\u0060\u00A0- an anonymized ID for the provider who placed the order in our EMR.\n*   \u0060ORDER_DT_TM\u0060\u00A0- the time that the order was placed in the EMR.\n*   \u0060PERFORMED_DT_TM\u0060\u00A0- the time that the test was performed and first resulted back to the EMR. \n\n*Additional columns in the results files*\n\n*   \u0060REFERENCE_RANGE\u0060\u00A0- the normal range for that particular result, either \u003C2.0 or \u003C=4.2 pmol/L.\n*   \u0060MEDICAL_SERVICE\u0060\u00A0- the service linked to the encounter from which the order is placed (e.g. Medicine, Surgery, Emergency). \n*   \u0060ENCOUNTER_TYPE\u0060\u00A0- the type of encounter from which the order was placed (e.g. Inpatient, Outpatient, Emergency). ","mimeType":"text/markdown","name":"data-description"},"competitionSlug":"aacc-2022-predicting-pthrp-results","numPrizes":1,"leaderboardPercentage":75,"discussion":{"dataUrl":"/forums/2042645/topics.json","id":2042645,"subscription":"UNSUBSCRIBE","paramValues":{"page":1,"group":"TOPIC_LIST_GROUP_ALL","sortBy":"TOPIC_LIST_SORT_BY_HOT","category":"TOPIC_LIST_CATEGORY_ALL"}},"competitionThumbnailImageUrl":"https://storage.googleapis.com/kaggle-competitions/kaggle/35504/logos/thumb76_76.png?t=2022-04-08-00-36-06","newTopic":{"authorType":"TOPIC","forumId":2042645,"parentName":"Predicting PTHrP Result - AACC 2022 Annual Meeting","parentUrl":"/competitions/aacc-2022-predicting-pthrp-results/discussion"},"numScoredSubmissions":1,"maxDailySubmissions":5,"maxDailySubmissionsResetDate":"2023-01-01T00:00:00Z","totalSolutionRows":266,"maxTeamSize":10,"totalCompetitors":33,"totalEntries":395,"evaluationAlgorithm":{"id":28,"abbreviation":"FScoreMicro","name":"F-Score (Micro)","description":"Used for categorization when there are many categories per row, Mean F-score across the rows.","isMax":true,"isPublic":true,"environmentRenderType":"ENVIRONMENT_RENDER_TYPE_JSON","state":"LEGACY"},"allowPrivateLeaderboardDisplay":true,"pages":[{"id":157756,"postId":11791169,"content":"## The Challenge\nThe Informatics Section of the Department of Pathology and Immunology of Washington University School of Medicine and the Data Analytics Steering Committee of the American Association for Clinical Chemistry welcome you to the ***Predicting PTHrP Results Competition***. \n\nThrough this competition, we hope to engage our community of laboratory medicine practitioners in a fun and friendly environment where we can practice our skills, learn from each other, and get a sense of the variety in how we approach problems in the data-driven side of our field. \n\nThe competition will run from May 8 to July 1, when submissions must be finalized. On July 5, the winner will be announced. A representative of the winning team will be invited to present their solution at the AACC Informatics Division Annual Meeting during the [AACC Annual Scientific Meeting \u0026amp; Clinical Lab Expo](https://meeting.aacc.org/) on July 25, 2022, in Chicago.\n\n## The Background\nMeasurement of parathyroid hormone-related peptide (PTHrP) can help to establish a diagnosis of humoral hypercalcemia of malignancy. However, PTHrP testing is often ordered on patients with a low pretest probability of this condition. This poor laboratory utilization practice drives up healthcare costs, diverts scarce resources, and can cause anxiety, unwarranted cancer work-ups, and treatment delays in the event of a false positive. \n\nAt Washington University in St. Louis, we use a manual, rules-based approach in which the lab medicine resident reviews PTH and calcium results to try to identify inappropriate orders where the probability of an abnormal PTHrP value is low. This process is labor-intensive and the ordering physician is often unwilling to cancel the order when contacted by the lab medicine resident.\n\nIn this friendly competition, we challenge you to develop an algorithm that predicts the PTHrP result (normal vs abnormal) using laboratory data available at the time of order to test our hypothesis that many of the PTHrP tests we send out fail to provide any novel information. The potential utility of this predictive algorithm would be to help convince the ordering physicians to improve utilization or to provide more timely clinical information while we wait for the result to return from the reference laboratory. \n\n![](https://i.imgur.com/zLscDSs.png) \n","mimeType":"text/html","name":"description","isPublished":true},{"id":157757,"postId":11776674,"content":"## Evaluating Performance\n\nThe evaluation metric for this competition is the [F1 Score](https://en.wikipedia.org/wiki/F-score). The F1 score measures performance by calculating the harmonic mean of precision and recall.\n\n![](https://wikimedia.org/api/rest_v1/media/math/render/svg/4179c69cf1dde8418c4593177521847e862e7df8)\n\n\n## Submission Format\n\nYou will submit your predictions in the same format as the *submission\\_template.csv* file on the **[Data](https://www.kaggle.com/competitions/aacc-2022-predicting-pthrp-results/data)** page. This file should have two columns, *PATIENT\\_ID* and *PREDICTION*. Your predictions should be a binary (0 or 1), with 0 being a normal PTHrP result. \n\n\nThe file should contain a header and have the following format:\n\u0060\u0060\u0060\nPATIENT_ID,PREDICTION\n123,1\n\u0060\u0060\u0060","mimeType":"text/html","name":"evaluation","isPublished":true},{"id":158606,"postId":11776109,"content":"![](https://i.imgur.com/wUJQqsO.png)","mimeType":"text/markdown","name":"Timeline","isPublished":true},{"id":158607,"postId":11662705,"content":"**1st Place:** One representative of the team whose model most accurately predicts PTHrP results will be invited to present their method at the AACC Informatics Division Annual Meeting during the AACC Annual Scientific Meeting \u0026 Clinical Lab Expo, on July 25, 2022, in Chicago. The representative will receive complimentary meeting registration and travel support (airfare and one night\u2019s hotel) of up to $1,000.\n","mimeType":"text/markdown","name":"Prizes","isPublished":true}],"databundleVersionId":3974404,"hasLeaderboard":true,"finalLeaderboardHasBeenVerified":true,"publicLeaderboardMessage":"","privateLeaderboardMessage":"","hasKernels":true,"hasSolutionFile":true,"scoringIsMax":true,"rawDataUrl":"/c/35504/leaderboard/download/public","mySubmissionsCount":0,"hostSegmentTitle":"Community","competitionHasLaunched":true,"competitionHasEnded":true,"externalCompetitionThumbnailImageUrl":"https://storage.googleapis.com/kaggle-competitions/kaggle/35504/logos/thumb76_76.png?t=2022-04-08-00-36-06","competitionUrl":"/competitions/aacc-2022-predicting-pthrp-results","mergerDeadlineHasPassed":true,"categories":{"tags":[{"name":"fscoremicro","description":"Used for categorization when there are many categories per row, Mean F-score across the rows."}],"type":"TAG_TYPE_COMPETITION"},"competitionHostClaims":{},"rulesRequired":true,"modelFileSizeBytes":0,"privateLeaderboardReleaseDate":"2022-07-05T18:01:30.230Z","@wf": "Competitions.Legacy.CompetitionDtoWireFormat3"});performance && performance.mark && performance.mark("CompetitionContainer.componentCouldBootstrap");</script>
+
+</div>
+
+
+
+
+  </main>
+</body>
+
+</html>
