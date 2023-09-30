@@ -1,10 +1,41 @@
 ---
-title: "What Does It Mean To\n '***Do Machine Learning***'?"
-subtitle: "MLOps for the Practicing Pathologist"
+title: "What Does It Mean To<br>'***Do Artificial Intelligence***'?<br>"
+subtitle: "<br>*MLOps for the Practicing Pathologist*"
 author: "Nick Spies, MD"
-format: revealjs
+css: custom.css
+format: 
+  revealjs:
+    theme: simple
 ---
 
-##  Computational & Digital Pathology
+## Computational & Digital Pathology
 
-![](images/Screenshot 2023-09-29 at 5.06.25 PM.png)
+![](images/Screenshot%202023-09-29%20at%205.06.25%20PM.png){fig-align="center"}
+
+## From My Brother, The Software Engineer
+
+::: v-center-container
+![](images/do_ai_text_screenshot-01.png){fig-align="center" width="6000"}
+:::
+
+## Key Take-Away #1 {background-color="#94464B"}
+
+::: v-center-container
+[***Artificial intelligence is a means, not an end.***]{.large-text}
+:::
+
+## Objectives
+
+-   Introduce key concepts of the machine learning life-cycle.
+
+-   Explore techniques in deploying and monitoring machine learning models "in production".
+
+-   Define a set of guidelines for the responsible use of AI/ML in the clinical laboratory.
+
+-   Reinforce key concepts with relevant lab-based examples.
+
+## A Guided Tour Through the ML Life-Cycle
+
+::: v-center-container
+![](images/mlops_life_cycle.svg){fig-align="center" width="2000"}
+:::

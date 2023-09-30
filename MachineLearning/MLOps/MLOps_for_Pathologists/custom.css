@@ -1,0 +1,12 @@
+.v-center-container {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  height: 90%;
+}
+
+.large-text {
+    font-size: 100px;
+    text-align: center;
+}
